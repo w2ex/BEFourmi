@@ -43,7 +43,7 @@ class Ville :
 
 class Fourmi :
     
-    def __init__(self, alpha, beta, gamma, position, last_ville, current_route, step):
+    def __init__(self, alpha, beta, gamma, position, last_ville, current_route):
         self.alpha = alpha # alpha sur [0, 1] 0 : exploration, 1 : tendance à suivre 
         self.beta = beta # capacité à déposer de la phéromone
         self.gamma = gamma # remplacer step par gamma pour jouer sur la vitesse de déplacement de la fourmi ?
@@ -54,11 +54,17 @@ class Fourmi :
         self.position = position
         self.last_ville = last_ville
         self.current_route = current_route
-        self.step = step
 
     def prendre_nourriture(self):
         self.porte_nourriture = True
         self.nourriture_collectee += 1
+    
+    def reset_nourriture(self):
+        self.nourriture_collectee = 0
+    
+    def reset_memoire(self) :
+        self.memoire_routes = []
+        self.nb_fois_meme_route = 0
     
     def laisser_nourriture(self):
         self.porte_nourriture = False
@@ -78,7 +84,7 @@ class Fourmi :
             self.memoire_routes.append(self.current_route)
         #self.position = self.position + np.array([sens*self.step, sens*self.current_route.route_dir*self.step])
         else :
-            self.position = self.position + (next_ville.get_position() - self.position)*self.step/np.linalg.norm(self.position - next_ville.get_position())
+            self.position = self.position + (next_ville.get_position() - self.position)*self.gamma/np.linalg.norm(self.position - next_ville.get_position())
         #print self.position
         self.current_route.augmente_pheromone(self.beta) # un truc à voir ici parce que plus la route est longue, plus il y aura de pheromone
         
@@ -138,9 +144,9 @@ class Civilisation :
         self.ville_nid = self.villes[0]
         self.ville_food = self.villes[-1]
         self.routes = [Route(self.villes[r[0]], self.villes[r[1]]) for r in routes]
-        self.fourmis = [Fourmi(rand.random(), 5*rand.random(), 5*rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5*rand.random()) for i in range(20)]
+        self.fourmis = [Fourmi(rand.random(), 5*rand.random(), 5*rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0]) for i in range(20)]
         #self.fourmideter = Fourmi(1, 0, rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5)
-        self.instant =0
+        self.instant = 1
         # début des mutations après l'instant t=100
     
     
@@ -152,7 +158,7 @@ class Civilisation :
                 fourmi.laisser_nourriture()
             else :
                 fourmi.marcher(self.routes)
-        if self.instant >= 100 :
+        if self.instant%150 == 0 :
             self.algo_gene()
         self.instant +=1
             
@@ -169,11 +175,11 @@ class Civilisation :
     def fin(self):
         X = []
         Y = []
-        for i in range (25000):
+        for i in range (50000):
             self.tourSuivant()
         best_coef = self.gene_exploit()[0].get_coef()
         print best_coef
-        best_fourmi = Fourmi(best_coef[0], best_coef[1], best_coef[2], self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5)
+        best_fourmi = Fourmi((best_coef[0]+1)/2, best_coef[1], best_coef[2], self.ville_nid.get_position(),  self.ville_nid, self.routes[0])
         pos = best_fourmi.getpos()
         while np.linalg.norm(pos - self.ville_food.get_position()) != 0  :
             best_fourmi.marcher(self.routes)
@@ -241,6 +247,9 @@ class Civilisation :
                 self.mutation(ant)
             else :
                 self.petite_mutation(ant)
+        for ant in self.fourmis :
+            ant.reset_nourriture()
+            ant.reset_memoire()
 
 
 def traitement():
