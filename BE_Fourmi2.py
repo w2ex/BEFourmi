@@ -71,7 +71,7 @@ class Fourmi :
             next_ville = self.current_route.get_villes()[0]
         else :
             next_ville = self.current_route.get_villes()[1]
-        if np.linalg.norm(self.position - next_ville.get_position()) <=10 :
+        if np.linalg.norm(self.position - next_ville.get_position()) <=3 :
             self.position = next_ville.get_position()
             self.last_ville = next_ville
             self.current_route = self.choix_chemin(routes)
@@ -85,22 +85,31 @@ class Fourmi :
 
     def choix_chemin(self, routes):
         routes_dispo = []
-        liste_choix =[]
-        liste2 = []
+        liste_chemin = []
         for r in routes :
             if r.get_villes()[0] == self.last_ville or r.get_villes()[1] == self.last_ville :
                 routes_dispo.append(r)
+        chemin_max_phero = routes_dispo[0]
+        max_phero = 0
         for e in routes_dispo:
             qte_pheromones = int(100*e.qte_pheromones()/e.get_distance())
-            liste_choix.append(e)
-            liste2.append(e) # liste avec une fois chaque chemin dispo
-            for i in range(qte_pheromones):
-                liste_choix.append(e) # liste avec phéromone fois chaque chemin dispo
+            liste_chemin.append(e) # liste avec une fois chaque chemin dispo
+            if qte_pheromones > max_phero :
+                max_phero = qte_pheromones
+                chemin_max_phero = e
         epsilon = rand.random()
         if epsilon > self.alpha :
-            route_choisie = rand.choice(liste2) # exploration favorisée
+            route_choisie = rand.choice(liste_chemin) # exploration favorisée
         else :
-            route_choisie = rand.choice(liste_choix) # suit les hauts taux de phéromone (mais toujours exploration)
+            route_choisie = chemin_max_phero # suit les hauts taux de phéromone (mais toujours exploration)
+        deja_vu = False
+        for route in self.memoire_routes :
+            if route == route_choisie :
+                deja_vu = True
+        if deja_vu :
+            self.nb_fois_meme_route += 1
+        else :
+            self.memoire_routes.append(route_choisie)
         return route_choisie
     
     def getpos(self) :
@@ -130,9 +139,9 @@ class Civilisation :
         self.ville_food = self.villes[-1]
         self.routes = [Route(self.villes[r[0]], self.villes[r[1]]) for r in routes]
         self.fourmis = [Fourmi(rand.random(), 5*rand.random(), 5*rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5*rand.random()) for i in range(20)]
-        self.fourmideter = Fourmi(1, 0, rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5)
-        self.compteur_mutation = 0
-        # on ne vas pas effectuer une mutation à chaque iteration, il faut laisser un peu de temps aux fourmis pour voir leur niveau
+        #self.fourmideter = Fourmi(1, 0, rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5)
+        self.instant =0
+        # début des mutations après l'instant t=100
     
     
     def tourSuivant(self) :
@@ -143,8 +152,10 @@ class Civilisation :
                 fourmi.laisser_nourriture()
             else :
                 fourmi.marcher(self.routes)
-            if self.compteur_mutation%10 ==0:
-                self.algo_gene()
+        if self.instant >= 100 :
+            self.algo_gene()
+        self.instant +=1
+            
                 
     def pos_fourmi(self):
         X = []
@@ -158,11 +169,15 @@ class Civilisation :
     def fin(self):
         X = []
         Y = []
-        for i in range (2000):
+        for i in range (25000):
             self.tourSuivant()
-        while np.linalg.norm(self.fourmideter.getpos() - self.ville_food.get_position()) !=0  :
-            self.fourmideter.marcher(self.routes)
-            pos = self.fourmideter.getpos()
+        best_coef = self.gene_exploit()[0].get_coef()
+        print best_coef
+        best_fourmi = Fourmi(best_coef[0], best_coef[1], best_coef[2], self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5)
+        pos = best_fourmi.getpos()
+        while np.linalg.norm(pos - self.ville_food.get_position()) != 0  :
+            best_fourmi.marcher(self.routes)
+            pos = best_fourmi.getpos()
             X.append(pos[0])
             Y.append(pos[1])
         plt.plot(X,Y, '.')
@@ -194,6 +209,10 @@ class Civilisation :
     def mutation(self, ant):
         ant.set_coef(rand.random(), 5*rand.random(), 5*rand.random())
         
+    def petite_mutation(self, ant) :
+        coef = ant.get_coef()
+        ant.set_coef(coef[0]+0.1*rand.random(), coef[1]+0.1*rand.random(), coef[2]+0.1*rand.random())
+        
     def crossover(self, ant, best):
         [a1,b1,g1] = ant.get_coef()
         [a2,b2,g2] = best.get_coef()
@@ -210,19 +229,22 @@ class Civilisation :
     def algo_gene(self):
         best_worker, worst_worker = self.gene_exploit()
         best_explorer, worst_explorer = self.gene_explore()      
-        op = rand.randint(1,3)
-        if op == 1:
-            self.selection(best_worker, worst_worker)
-            self.selection(best_explorer, worst_explorer)
-        elif op == 2:
-            self.crossover(best_worker, best_explorer)
-        else:
-            self.mutation(worst_worker)
-            self.mutation(worst_explorer)
+        op = rand.randint(1,5)
+        for ant in self.fourmis :
+            if op == 1:
+                self.selection(best_worker, ant)
+            elif op == 2:
+                self.selection(best_explorer, ant)
+            elif op == 3:
+                self.crossover(best_worker, best_explorer)
+            elif op == 4:
+                self.mutation(ant)
+            else :
+                self.petite_mutation(ant)
 
 
 def traitement():
-    
+    '''
     civ = Civilisation()
     X = []
     Y = []
@@ -238,4 +260,4 @@ def traitement():
     plt.show()
     '''
     civ = Civilisation()
-    civ.fin()'''
+    civ.fin()
