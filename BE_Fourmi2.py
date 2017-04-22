@@ -106,6 +106,21 @@ class Fourmi :
     def getpos(self) :
         return self.position
 
+    def get_food(self):
+        return self.nourriture_collectee
+
+    def get_ways(self):
+        return self.nb_fois_meme_route, len(self.memoire_routes)
+
+    def get_coef(self):
+        return [self.alpha, self.beta, self.gamma]
+
+    def set_coef(self, a, b, g):
+        self.alpha = a
+        self.beta = b
+        self.gamma = g
+        
+        
 
 class Civilisation :
     
@@ -115,7 +130,10 @@ class Civilisation :
         self.ville_food = self.villes[-1]
         self.routes = [Route(self.villes[r[0]], self.villes[r[1]]) for r in routes]
         self.fourmis = [Fourmi(rand.random(), 5*rand.random(), 5*rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5*rand.random()) for i in range(20)]
-        self.fourmideter =Fourmi(1, 0, rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5)
+        self.fourmideter = Fourmi(1, 0, rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5)
+        self.compteur_mutation = 0
+        # on ne vas pas effectuer une mutation à chaque iteration, il faut laisser un peu de temps aux fourmis pour voir leur niveau
+    
     
     def tourSuivant(self) :
         for fourmi in self.fourmis :
@@ -125,6 +143,8 @@ class Civilisation :
                 fourmi.laisser_nourriture()
             else :
                 fourmi.marcher(self.routes)
+            if self.compteur_mutation%10 ==0:
+                self.algo_gene()
                 
     def pos_fourmi(self):
         X = []
@@ -147,8 +167,60 @@ class Civilisation :
             Y.append(pos[1])
         plt.plot(X,Y, '.')
         plt.show()
-            
-                
+    
+    def gene_exploit(self):
+        f = []
+        for ant in self.fourmis:
+            f.append(ant.get_food)
+        f = np.array(f)
+        best_index = np.argmax(f)
+        worst_index = np.argmin(f)
+        best = self.fourmis[best_index]
+        worst = self.fourmis[worst_index]
+        return best, worst
+    
+    def gene_explore(self):
+        f = []
+        for ant in self.fourmis:
+            nb_fois_meme_route, nb_chemins_parcourus = ant.get_ways()
+            f.append(nb_chemins_parcourus-nb_fois_meme_route)
+        f = np.array(f)
+        best_index = np.argmax(f)
+        worst_index = np.argmin(f)
+        best = self.fourmis[best_index]
+        worst = self.fourmis[worst_index]
+        return best, worst
+    
+    def mutation(self, ant):
+        ant.set_coef(rand.random(), 5*rand.random(), 5*rand.random())
+        
+    def crossover(self, ant, best):
+        [a1,b1,g1] = ant.get_coef()
+        [a2,b2,g2] = best.get_coef()
+        a3 = (a1+a2)/2
+        b3 = (b1+b2)/2
+        g3 = (g1+g2)/2
+        # on peut aussi mélanger les coefficients
+        ant.set_coef(a3,b3,g3)
+        
+    def selection(self, best, worst):
+        [a,b,c] = best.get_coef()
+        worst.set_coef(a,b,c)
+
+    def algo_gene(self):
+        best_worker, worst_worker = self.gene_exploit()
+        best_explorer, worst_explorer = self.gene_explore()      
+        op = rand.randint(1,3)
+        if op == 1:
+            self.selection(best_worker, worst_worker)
+            self.selection(best_explorer, worst_explorer)
+        elif op == 2:
+            self.crossover(best_worker, best_explorer)
+        else:
+            self.mutation(worst_worker)
+            self.mutation(worst_explorer)
+
+
 def traitement():
     
     civ = Civilisation()
@@ -161,7 +233,7 @@ def traitement():
         X.append(pos[0])
         Y.append(pos[1])
     for r in civ.routes :
-        print r.qte_pheromones()
+        print r,r.qte_pheromones()
     plt.plot(X,Y,'.')
     plt.show()
     '''
