@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+
+
 class Route :
     
     def __init__(self, ville1, ville2) :
@@ -32,8 +34,7 @@ class Route :
 
 class Ville :
     
-    def __init__(self, nom, X, Y):
-        self.nom = nom
+    def __init__(self, X, Y):
         self.X = X
         self.Y = Y
      
@@ -134,22 +135,20 @@ class Fourmi :
         self.alpha = a
         self.beta = b
         self.gamma = g
-        
-        
+    
 
 class Civilisation :
     
-    def __init__(self, routes = [(0,1), (1,2), (1,3), (2,3), (3,4)], villes=[('nid', 0,0), ('ville1', 20, 20), ('ville2', 70, 30), ('ville3', 50, 80), ('food', 100, 50)]):
-        self.villes = [Ville(v[0], v[1], v[2]) for v in villes]
+    def __init__(self, routes = [(0,1), (1,2), (1,3), (2,3), (3,4)], villes=[(0,0), (20, 20), (70, 30), (50, 80), (100, 50)], nb_fourmis=20):
+        self.villes = [Ville(v[0], v[1]) for v in villes]
         self.ville_nid = self.villes[0]
         self.ville_food = self.villes[-1]
         self.routes = [Route(self.villes[r[0]], self.villes[r[1]]) for r in routes]
-        self.fourmis = [Fourmi(rand.random(), 5*rand.random(), 5*rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0]) for i in range(20)]
+        self.fourmis = [Fourmi(rand.random(), 5*rand.random(), 5*rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0]) for i in range(nb_fourmis)]
         #self.fourmideter = Fourmi(1, 0, rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5)
         self.instant = 1
         # début des mutations après l'instant t=100
-    
-    
+
     def tourSuivant(self) :
         for fourmi in self.fourmis :
             if np.linalg.norm(fourmi.getpos() - self.ville_food.get_position())==0 and fourmi.porte_nourriture==False :
@@ -161,8 +160,7 @@ class Civilisation :
         if self.instant%150 == 0 :
             self.algo_gene()
         self.instant +=1
-            
-                
+
     def pos_fourmi(self):
         X = []
         Y = []
@@ -250,6 +248,12 @@ class Civilisation :
         for ant in self.fourmis :
             ant.reset_nourriture()
             ant.reset_memoire()
+
+    def get_ants_position(self):
+        f = []
+        for ant in self.fourmis:
+            f.append(ant.getpos())
+        return f
 
 
 def traitement():
