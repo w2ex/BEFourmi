@@ -8,14 +8,46 @@ Created on Sat Apr 22 13:59:19 2017
 from Tkinter import *
 import random
 
+NB_FOURMIS = IntVar(Mafenetre)
+
+
+LISTE_COORDS_ANTS = []
+
+NB_ITERATIONS = IntVar(Mafenetre)
+
+
+CITY1 = 0
+CITY2 = 0
+
+DEBUT_LIGNE = (0,0)
+FIN_LIGNE = (0,0)
+
+RIGHT_CLICKED1 = False
+RIGHT_CLICKED2 = False
+
+DETECTION_CLIC_SUR_OBJET = False
+
+LISTE_VILLES = []
+
+LISTE_COORDS_VILLES = []
+LISTE_ROUTES = []
+
+NB_VILLES = 0
+
+
 def Go():
     global LISTE_ROUTES
     global LISTE_COORDS_VILLES
     global NB_FOURMIS
     global NB_ITERATIONS
+    global LISTE_COORDS_ANTS
     
-    # on retire les routes doublons et on suppose qu'il n'y a pas de villes doublonnes
-    dedoublonnage()
+    print(NB_FOURMIS)
+    print(NB_ITERATIONS)
+    # on retire les routes doublons et les routes de X à X
+    processing()
+    print("processing done")
+    print(LISTE_ROUTES)
     # fourmilière
     r = 7
     home = LISTE_COORDS_VILLES[0]
@@ -23,15 +55,18 @@ def Go():
     # source de nourriture
     food = LISTE_COORDS_VILLES[-1]
     Canevas.create_rectangle(food[0]-r, food[1]-r, food[0]+r, food[1]+r, outline='black', fill='blue')
+    print("rectanges created")
     civ = Civilisation(LISTE_ROUTES, LISTE_COORDS_VILLES, NB_FOURMIS)
     for i in range(NB_ITERATIONS):
         civ.tourSuivant()
+        LISTE_COORDS_ANTS = civ.get_ants_position()
     
-
-
-def dedoublonnage():
+def processing():
     global LISTE_ROUTES
     list(set(LISTE_ROUTES))
+    for i in xrange(len(LISTE_ROUTES)):
+        if LISTE_ROUTES[i][0] == LISTE_ROUTES[i][1]:
+            LISTE_ROUTES.remove(LISTE_ROUTES[i])
     
 def impr(x):
     print(x)
@@ -55,7 +90,6 @@ def Clic_ville(event):
     
     print("La liste des villes : " + str(LISTE_VILLES))
     print("La liste des coordonnées : " + str(LISTE_COORDS_VILLES))
-
 
 def Clic_route(event):
     """ Gestion de l'événement Clic gauche """
@@ -115,27 +149,6 @@ def Clic_route(event):
         CITY2 = 0
         print("La liste des routes : " + str(LISTE_ROUTES))
 
-NB_FOURMIS = 0
-NB_ITERATIONS = 0
-
-CITY1 = 0
-CITY2 = 0
-
-DEBUT_LIGNE = (0,0)
-FIN_LIGNE = (0,0)
-
-RIGHT_CLICKED1 = False
-RIGHT_CLICKED2 = False
-
-DETECTION_CLIC_SUR_OBJET = False
-
-LISTE_VILLES = []
-
-LISTE_COORDS_VILLES = []
-LISTE_ROUTES = []
-
-NB_VILLES = 0
-
 def Effacer():
     """ Efface la zone graphique et reset de variables globales """
     global CITY1
@@ -163,7 +176,7 @@ def Effacer():
     LISTE_ROUTES = []
     NB_VILLES = 0
 
-
+## Elements graphiques
 
 # Création de la fenêtre principale (main window)
 Mafenetre = Tk()
