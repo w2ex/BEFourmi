@@ -5,16 +5,27 @@ Created on Sat Apr 22 13:59:19 2017
 @author: Thomas
 """
 
+
+## imports
+
 from Tkinter import *
 import random
 
-NB_FOURMIS = IntVar(Mafenetre)
+## fenetre principale -- doit se trouver ici
 
+# Création de la fenêtre principale (main window)
+Mafenetre = Tk()
+Mafenetre.title('Colonie de fourmis & Problème du plus court chemin')
+
+## Variables globales
+
+NB_FOURMIS = IntVar()
+NB_FOURMIS.set(20)
+
+NB_ITERATIONS = IntVar()
+NB_ITERATIONS.set(2000)
 
 LISTE_COORDS_ANTS = []
-
-NB_ITERATIONS = IntVar(Mafenetre)
-
 
 CITY1 = 0
 CITY2 = 0
@@ -34,6 +45,7 @@ LISTE_ROUTES = []
 
 NB_VILLES = 0
 
+## Fonctions graphiques
 
 def Go():
     global LISTE_ROUTES
@@ -41,9 +53,8 @@ def Go():
     global NB_FOURMIS
     global NB_ITERATIONS
     global LISTE_COORDS_ANTS
+    global Canevas
     
-    print(NB_FOURMIS)
-    print(NB_ITERATIONS)
     # on retire les routes doublons et les routes de X à X
     processing()
     print("processing done")
@@ -56,17 +67,38 @@ def Go():
     food = LISTE_COORDS_VILLES[-1]
     Canevas.create_rectangle(food[0]-r, food[1]-r, food[0]+r, food[1]+r, outline='black', fill='blue')
     print("rectanges created")
-    civ = Civilisation(LISTE_ROUTES, LISTE_COORDS_VILLES, NB_FOURMIS)
-    for i in range(NB_ITERATIONS):
+    print("variables used : ")
+    print("Liste des routes : ", LISTE_ROUTES)
+    print("Liste des coords des villes : ", LISTE_COORDS_VILLES)
+    print("nb. de fourmis", NB_FOURMIS.get())
+    print("nb itertions :", NB_ITERATIONS.get())
+    print("......")
+    civ = Civilisation(LISTE_ROUTES, LISTE_COORDS_VILLES, NB_FOURMIS.get())
+    print("launching the run")
+    for i in range(NB_ITERATIONS.get()+1):
+        print(i)
         civ.tourSuivant()
         LISTE_COORDS_ANTS = civ.get_ants_position()
+        print("Liste des pos. des fourmis", LISTE_COORDS_ANTS)
+        affichage_ants(LISTE_COORDS_ANTS, Canevas)
+
+
+def affichage_ants(liste, canvas):
+    r = 3
+    for e in liste:
+        x = e[0]
+        y = e[1]
+        canvas.create_oval(x-r, y-r, x+r, y+r, outline='blue', fill='blue')
     
+
+
 def processing():
     global LISTE_ROUTES
     list(set(LISTE_ROUTES))
-    for i in xrange(len(LISTE_ROUTES)):
-        if LISTE_ROUTES[i][0] == LISTE_ROUTES[i][1]:
-            LISTE_ROUTES.remove(LISTE_ROUTES[i])
+    n = len(LISTE_ROUTES)
+    for i in xrange(1,n+1):
+        if LISTE_ROUTES[n-i][0] == LISTE_ROUTES[n-i][1]:
+            LISTE_ROUTES.remove(LISTE_ROUTES[n-i])
     
 def impr(x):
     print(x)
@@ -178,10 +210,6 @@ def Effacer():
 
 ## Elements graphiques
 
-# Création de la fenêtre principale (main window)
-Mafenetre = Tk()
-Mafenetre.title('Colonie de fourmis & Problème du plus court chemin')
-
 
 # Création d'un widget Frame pour le canvas
 Frame0 = Frame(Mafenetre,borderwidth=2,relief=GROOVE)
@@ -193,7 +221,7 @@ Largeur = 800
 Hauteur = 600
 Canevas = Canvas(Frame0, width = Largeur, height =Hauteur, bg ='white')
 # La méthode bind() permet de lier un événement avec une fonction :
-# un clic gauche sur la zone graphique provoquera l'appel de la fonction utilisateur Clic_xxxx()
+# un clic gauche sur la zone graphique provoquera l'appel de la fonction utilisateur Clic_xxxx()s
 Canevas.bind('<Button-1>', Clic_ville)
 Canevas.bind('<Button-3>', Clic_route)
 
