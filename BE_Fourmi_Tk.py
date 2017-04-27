@@ -10,14 +10,15 @@ Created on Sat Apr 22 13:59:19 2017
 
 from Tkinter import *
 import random
+import time
 
-## fenetre principale -- doit se trouver ici
+## fenetre principale -- doit se trouver ici pour d'autres variables globales
 
 # Création de la fenêtre principale (main window)
 Mafenetre = Tk()
 Mafenetre.title('Colonie de fourmis & Problème du plus court chemin')
 
-## Variables globales
+## Variables globales -- toutes les infos importantes
 
 NB_FOURMIS = IntVar()
 NB_FOURMIS.set(20)
@@ -25,6 +26,7 @@ NB_FOURMIS.set(20)
 NB_ITERATIONS = IntVar()
 NB_ITERATIONS.set(2000)
 
+LISTE_ANTS = []
 LISTE_COORDS_ANTS = []
 
 CITY1 = 0
@@ -39,8 +41,8 @@ RIGHT_CLICKED2 = False
 DETECTION_CLIC_SUR_OBJET = False
 
 LISTE_VILLES = []
-
 LISTE_COORDS_VILLES = []
+
 LISTE_ROUTES = []
 
 NB_VILLES = 0
@@ -54,18 +56,21 @@ def Go():
     global NB_ITERATIONS
     global LISTE_COORDS_ANTS
     global Canevas
+    global Mafenetre
     
     # on retire les routes doublons et les routes de X à X
     processing()
     print("processing done")
     print(LISTE_ROUTES)
-    # fourmilière
-    r = 7
+    # fourmilière avec une apparence différente
+    r = 10
     home = LISTE_COORDS_VILLES[0]
     Canevas.create_rectangle(home[0]-r, home[1]-r, home[0]+r, home[1]+r, outline='black', fill='blue')
-    # source de nourriture
+    # source de nourriture -- idem
     food = LISTE_COORDS_VILLES[-1]
     Canevas.create_rectangle(food[0]-r, food[1]-r, food[0]+r, food[1]+r, outline='black', fill='blue')
+    # print informatif
+    Mafenetre.update()
     print("rectanges created")
     print("variables used : ")
     print("Liste des routes : ", LISTE_ROUTES)
@@ -73,38 +78,64 @@ def Go():
     print("nb. de fourmis", NB_FOURMIS.get())
     print("nb itertions :", NB_ITERATIONS.get())
     print("......")
+    # les choses serieuses commencent
     civ = Civilisation(LISTE_ROUTES, LISTE_COORDS_VILLES, NB_FOURMIS.get())
+    # creation de la civilisation avec les bons paramètres
+    create_ants()
+    # creation des fourmis
     print("launching the run")
+    time
     for i in range(NB_ITERATIONS.get()+1):
         print(i)
         civ.tourSuivant()
         LISTE_COORDS_ANTS = civ.get_ants_position()
         print("Liste des pos. des fourmis", LISTE_COORDS_ANTS)
-        affichage_ants(LISTE_COORDS_ANTS, Canevas)
+        Mafenetre.after(10,move_ants())
 
-
-def affichage_ants(liste, canvas):
-    r = 3
-    for e in liste:
-        x = e[0]
-        y = e[1]
-        canvas.create_oval(x-r, y-r, x+r, y+r, outline='blue', fill='blue')
+def create_ants():
+    global NB_FOURMIS
+    global LISTE_ANTS
+    global LISTE_COORDS_VILLES
+    global Mefenetre
     
+    outline_color = 'black'
+    fill_color = 'red'
+    X = LISTE_COORDS_VILLES[0][0]
+    Y = LISTE_COORDS_VILLES[0][1]
+    r = 3
+    # on crée toutes les fourmis à leur position de départ
+    for i in xrange(NB_FOURMIS.get()):
+        LISTE_ANTS.append(Canevas.create_oval(X-r, Y-r, X+r, Y+r, outline=outline_color,fill=fill_color))
+        Mafenetre.update()
 
+def move_ants():
+    global Canevas
+    global LISTE_COORDS_ANTS
+    global LISTE_ANTS
+    global NB_FOURMIS
+    global Mefenetre
+    
+    r = 3
+    for i in xrange(NB_FOURMIS.get()):
+        x = LISTE_COORDS_ANTS[i][0]
+        y = LISTE_COORDS_ANTS[i][1]
+        ant = LISTE_ANTS[i]
+        Canevas.coords(ant,round(x-r,2), round(y-r,2), round(x+r,2), round(y+r,2))
+        Mafenetre.update()
 
 def processing():
     global LISTE_ROUTES
+    
     list(set(LISTE_ROUTES))
     n = len(LISTE_ROUTES)
     for i in xrange(1,n+1):
         if LISTE_ROUTES[n-i][0] == LISTE_ROUTES[n-i][1]:
             LISTE_ROUTES.remove(LISTE_ROUTES[n-i])
-    
+
 def impr(x):
     print(x)
 
 def Clic_ville(event):
-    """ Gestion de l'événement Clic gauche sur la zone graphique """
     global NB_VILLES
     global LISTE_VILLES
     global LISTE_COORDS_VILLES
@@ -113,7 +144,7 @@ def Clic_ville(event):
     X = event.x
     Y = event.y
     # on dessine un carré
-    r = 5
+    r = 8
     outline_color = 'black'
     fill_color = 'green'
     LISTE_VILLES.append(Canevas.create_rectangle(X-r, Y-r, X+r, Y+r, outline=outline_color,fill=fill_color))
@@ -124,7 +155,6 @@ def Clic_ville(event):
     print("La liste des coordonnées : " + str(LISTE_COORDS_VILLES))
 
 def Clic_route(event):
-    """ Gestion de l'événement Clic gauche """
     global DETECTION_CLIC_SUR_OBJET
     global RIGHT_CLICKED1
     global RIGHT_CLICKED2
@@ -182,7 +212,6 @@ def Clic_route(event):
         print("La liste des routes : " + str(LISTE_ROUTES))
 
 def Effacer():
-    """ Efface la zone graphique et reset de variables globales """
     global CITY1
     global CITY2
     global DEBUT_LIGNE
@@ -258,7 +287,7 @@ echelle.pack(side = TOP, padx=10,pady=10)
 
 # Création d'un widget Scale iterations
 echelle = Scale(Frame1,from_=1000,to=20000,resolution=1000,orient=HORIZONTAL,\
-length=500,width=20,label="Nombre d'itérations",tickinterval=2000, variable=NB_ITERATIONS, command=impr)
+length=500,width=20,label="Nombre d'itérations",tickinterval=19000, variable=NB_ITERATIONS, command=impr)
 echelle.pack(side = TOP, padx=10,pady=10)
 
 # Création d'un widget Button (bouton Go)
