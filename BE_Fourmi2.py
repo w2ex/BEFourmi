@@ -135,7 +135,7 @@ class Fourmi :
         self.alpha = a
         self.beta = b
         self.gamma = g
-    
+
 
 class Civilisation :
     
@@ -257,12 +257,10 @@ class Civilisation :
 
 
 def traitement():
-    '''
-    civ = Civilisation()
+    civ = Civilisation([(1, 3), (3, 2), (2, 1), (1, 0), (0, 2)], [(248, 451), (327, 294), (382, 361), (446, 217)], 1)
     X = []
     Y = []
-    plt.plot([0,20,70,50,100], [0,20,30,80,50], '+')
-    for i in range(1000):
+    for i in range(2000):
         civ.tourSuivant()
         pos = civ.pos_fourmi()
         X.append(pos[0])
@@ -271,6 +269,5 @@ def traitement():
         print r,r.qte_pheromones()
     plt.plot(X,Y,'.')
     plt.show()
-    '''
     civ = Civilisation()
     civ.fin()
