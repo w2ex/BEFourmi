@@ -63,7 +63,7 @@ def Go():
     print("processing done")
     print(LISTE_ROUTES)
     # fourmilière avec une apparence différente
-    r = 10
+    r = 15
     home = LISTE_COORDS_VILLES[0]
     Canevas.create_rectangle(home[0]-r, home[1]-r, home[0]+r, home[1]+r, outline='black', fill='blue')
     # source de nourriture -- idem
@@ -89,8 +89,27 @@ def Go():
         print(i)
         civ.tourSuivant()
         LISTE_COORDS_ANTS = civ.get_ants_position()
-        print("Liste des pos. des fourmis", LISTE_COORDS_ANTS)
         Mafenetre.after(10,move_ants())
+    print('Wait a bit please, some processing to find the best path is ongoing....')
+    best_road = civ.fin()
+    shorten(best_road)
+    print('processing is done.')
+    for i in xrange(len(best_road)-1):
+        step1 = best_road[i]
+        step2 = best_road[i+1]
+        Canevas.create_line(step1[0], step1[1], step2[0], step2[1], width=5, fill='red')
+    Mafenetre.update()
+
+def shorten(liste_in):
+    global LISTE_COORDS_VILLES
+    
+    liste_out = []
+    for e in liste_in:
+        e = (e[0],e[1])
+        if e in LISTE_COORDS_VILLES:
+            liste_out.append(e)
+    return liste_out
+
 
 def create_ants():
     global NB_FOURMIS
@@ -144,7 +163,7 @@ def Clic_ville(event):
     X = event.x
     Y = event.y
     # on dessine un carré
-    r = 8
+    r = 10
     outline_color = 'black'
     fill_color = 'green'
     LISTE_VILLES.append(Canevas.create_rectangle(X-r, Y-r, X+r, Y+r, outline=outline_color,fill=fill_color))
@@ -228,34 +247,23 @@ def Effacer():
     global LISTE_ROUTES
     global NB_VILLES 
 
-
-    
     Canevas.delete(ALL)
     NB_FOURMIS = IntVar()
     NB_FOURMIS.set(20)
-    
     NB_ITERATIONS = IntVar()
     NB_ITERATIONS.set(2000)
-    
     LISTE_ANTS = []
     LISTE_COORDS_ANTS = []
-    
     CITY1 = 0
     CITY2 = 0
-    
     DEBUT_LIGNE = (0,0)
     FIN_LIGNE = (0,0)
-    
     RIGHT_CLICKED1 = False
     RIGHT_CLICKED2 = False
-    
     DETECTION_CLIC_SUR_OBJET = False
-    
     LISTE_VILLES = []
     LISTE_COORDS_VILLES = []
-    
     LISTE_ROUTES = []
-    
     NB_VILLES = 0
 
 ## Elements graphiques

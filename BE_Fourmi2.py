@@ -1,7 +1,5 @@
 import random as rand
 import numpy as np
-import matplotlib.pyplot as plt
-
 
 class Route :
     
@@ -32,8 +30,7 @@ class Route :
 
 class Ville :
     
-    def __init__(self, nom, X, Y):
-        self.nom = nom
+    def __init__(self, X, Y):
         self.X = X
         self.Y = Y
      
@@ -145,12 +142,12 @@ class Fourmi :
 
 class Civilisation :
     
-    def __init__(self, routes = [(0,1), (1,2), (1,3), (2,3), (3,4), (2,4)], villes=[('nid', 0,0), ('ville1', 20, 20), ('ville2', 70, 30), ('ville3', 50, 80), ('food', 100, 50)]):
-        self.villes = [Ville(v[0], v[1], v[2]) for v in villes]
+    def __init__(self, routes = [(0,1), (1,2), (1,3), (2,3), (3,4), (2,4)], villes=[(0,0), (20, 20), (70, 30), (50, 80), (100, 50)], nb_fourmis=20):
+        self.villes = [Ville(v[0], v[1]) for v in villes]
         self.ville_nid = self.villes[0]
         self.ville_food = self.villes[-1]
         self.routes = [Route(self.villes[r[0]], self.villes[r[1]]) for r in routes]
-        self.fourmis = [Fourmi(rand.random(), 10*rand.random(), 5*rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes) for i in range(20)]
+        self.fourmis = [Fourmi(rand.random(), 10*rand.random(), 5*rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes) for i in range(nb_fourmis)]
         self.instant = 1
         # début des mutations après l'instant t=100
     
@@ -180,23 +177,15 @@ class Civilisation :
         return (X,Y)
         
     def fin(self):
-        X = []
-        Y = []
-        for i in range (50000):
-            self.tourSuivant()
-        best_coef = self.gene_exploit()[0].get_coef()
-        print best_coef
-        for r in self.routes :
-            print r.qte_pheromones()
-        best_fourmi = Fourmi(0.98, best_coef[1], best_coef[2], self.ville_nid.get_position(),  self.ville_nid, self.routes)
+        list_positions = []
+        best_fourmi = Fourmi(0.98, 0, 0.1, self.ville_nid.get_position(),  self.ville_nid, self.routes)
         pos = best_fourmi.getpos()
+        list_positions.append(pos)
         while np.linalg.norm(pos - self.ville_food.get_position()) != 0  :
             best_fourmi.marcher(self.routes)
             pos = best_fourmi.getpos()
-            X.append(pos[0])
-            Y.append(pos[1])
-        plt.plot(X,Y, '.')
-        plt.show()
+            list_positions.append(pos)
+        return list_positions
     
     def gene_exploit(self):
         f = []
@@ -260,6 +249,11 @@ class Civilisation :
             ant.reset_nourriture()
             ant.reset_memoire()
 
+    def get_ants_position(self):
+        f = []
+        for ant in self.fourmis:
+            f.append(ant.getpos())
+        return f
 
 def traitement():
     '''
