@@ -3,8 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
-
 class Route :
     
     def __init__(self, ville1, ville2) :
@@ -14,7 +12,7 @@ class Route :
         self.route_dir = (float(ville2.Y-ville1.Y))/(ville2.X-ville1.X)
         
     def evaporer_Pheromone(self) :
-        self.pheromone = 0.7*self.pheromone
+        self.pheromone = 0.9*self.pheromone
     
     def get_villes(self):
         return self.villes
@@ -34,7 +32,8 @@ class Route :
 
 class Ville :
     
-    def __init__(self, X, Y):
+    def __init__(self, nom, X, Y):
+        self.nom = nom
         self.X = X
         self.Y = Y
      
@@ -50,6 +49,7 @@ class Fourmi :
         self.gamma = gamma # remplacer step par gamma pour jouer sur la vitesse de déplacement de la fourmi ?
         self.porte_nourriture = False
         self.nourriture_collectee = 0
+        self.chemin_aller = [current_route]
         self.memoire_routes = []
         self.nb_fois_meme_route = 0
         self.position = position
@@ -69,9 +69,6 @@ class Fourmi :
     
     def laisser_nourriture(self):
         self.porte_nourriture = False
-    
-    def deposer_pheromone(self):
-        self.route.augmente_pheromone()
         
     def marcher(self, routes):
         if self.current_route.get_villes()[0] != self.last_ville :
@@ -82,7 +79,6 @@ class Fourmi :
             self.position = next_ville.get_position()
             self.last_ville = next_ville
             self.current_route = self.choix_chemin(routes)
-            self.memoire_routes.append(self.current_route)
         #self.position = self.position + np.array([sens*self.step, sens*self.current_route.route_dir*self.step])
         else :
             self.position = self.position + (next_ville.get_position() - self.position)*self.gamma/np.linalg.norm(self.position - next_ville.get_position())
@@ -93,30 +89,35 @@ class Fourmi :
     def choix_chemin(self, routes):
         routes_dispo = []
         liste_chemin = []
-        for r in routes :
-            if r.get_villes()[0] == self.last_ville or r.get_villes()[1] == self.last_ville :
-                routes_dispo.append(r)
-        chemin_max_phero = routes_dispo[0]
-        max_phero = 0
-        for e in routes_dispo:
-            qte_pheromones = int(100*e.qte_pheromones()/e.get_distance())
-            liste_chemin.append(e) # liste avec une fois chaque chemin dispo
-            if qte_pheromones > max_phero :
-                max_phero = qte_pheromones
-                chemin_max_phero = e
-        epsilon = rand.random()
-        if epsilon > self.alpha :
-            route_choisie = rand.choice(liste_chemin) # exploration favorisée
+        if self.porte_nourriture == True :
+            route_choisie = self.chemin_aller.pop()
         else :
-            route_choisie = chemin_max_phero # suit les hauts taux de phéromone (mais toujours exploration)
-        deja_vu = False
-        for route in self.memoire_routes :
-            if route == route_choisie :
-                deja_vu = True
-        if deja_vu :
-            self.nb_fois_meme_route += 1
-        else :
-            self.memoire_routes.append(route_choisie)
+            for r in routes :
+                if r.get_villes()[0] == self.last_ville or r.get_villes()[1] == self.last_ville :
+                    routes_dispo.append(r)
+            chemin_max_phero = routes_dispo[0]
+            if routes_dispo[0] == self.current_route and len(routes_dispo)>1 :
+                chemin_max_phero = routes_dispo[1] # si possible on ne set pas le chemin par défaut sur celui que l'on vient de prendre (pas de demi-tour par exemple)
+            max_phero = 0
+            for e in routes_dispo:
+                qte_pheromones = e.qte_pheromones #int(100*e.qte_pheromones()/e.get_distance())
+                if qte_pheromones > max_phero and e != self.current_route :
+                    max_phero = qte_pheromones
+                    chemin_max_phero = e
+            epsilon = rand.random()
+            if epsilon < self.alpha and chemin_max_phero != self.current_route :
+                route_choisie = chemin_max_phero # suit les hauts taux de phéromone (mais toujours exploration)
+            else :
+                route_choisie = rand.choice(routes_dispo) # exploration favorisée
+            self.chemin_aller.append(route_choisie)
+            deja_vu = False
+            for route in self.memoire_routes :
+                if route == route_choisie :
+                    deja_vu = True
+            if deja_vu :
+                self.nb_fois_meme_route += 1
+            else :
+                self.memoire_routes.append(route_choisie)
         return route_choisie
     
     def getpos(self) :
@@ -135,32 +136,36 @@ class Fourmi :
         self.alpha = a
         self.beta = b
         self.gamma = g
-
+        
+        
 
 class Civilisation :
     
-    def __init__(self, routes = [(0,1), (1,2), (1,3), (2,3), (3,4)], villes=[(0,0), (20, 20), (70, 30), (50, 80), (100, 50)], nb_fourmis=20):
-        self.villes = [Ville(v[0], v[1]) for v in villes]
+    def __init__(self, routes = [(0,1), (1,2), (1,3), (2,3), (3,4), (2,4)], villes=[('nid', 0,0), ('ville1', 20, 20), ('ville2', 70, 30), ('ville3', 50, 80), ('food', 100, 50)]):
+        self.villes = [Ville(v[0], v[1], v[2]) for v in villes]
         self.ville_nid = self.villes[0]
         self.ville_food = self.villes[-1]
         self.routes = [Route(self.villes[r[0]], self.villes[r[1]]) for r in routes]
-        self.fourmis = [Fourmi(rand.random(), 5*rand.random(), 5*rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0]) for i in range(nb_fourmis)]
-        #self.fourmideter = Fourmi(1, 0, rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0], 5)
+        self.fourmis = [Fourmi(rand.random(), 10*rand.random(), 5*rand.random(), self.ville_nid.get_position(),  self.ville_nid, self.routes[0]) for i in range(20)]
         self.instant = 1
         # début des mutations après l'instant t=100
-
+    
+    
     def tourSuivant(self) :
         for fourmi in self.fourmis :
-            if np.linalg.norm(fourmi.getpos() - self.ville_food.get_position())==0 and fourmi.porte_nourriture==False :
+            if np.linalg.norm(fourmi.getpos() - self.ville_food.get_position())<=3 and fourmi.porte_nourriture==False :
                 fourmi.prendre_nourriture()
-            elif np.linalg.norm(fourmi.getpos() - self.ville_nid.get_position())==0 and fourmi.porte_nourriture == True :
+            elif np.linalg.norm(fourmi.getpos() - self.ville_nid.get_position())<=3 and fourmi.porte_nourriture == True :
                 fourmi.laisser_nourriture()
             else :
                 fourmi.marcher(self.routes)
+        for r in self.routes :
+            r.evaporer_Pheromone()
         if self.instant%150 == 0 :
             self.algo_gene()
         self.instant +=1
-
+            
+                
     def pos_fourmi(self):
         X = []
         Y = []
@@ -177,7 +182,9 @@ class Civilisation :
             self.tourSuivant()
         best_coef = self.gene_exploit()[0].get_coef()
         print best_coef
-        best_fourmi = Fourmi((best_coef[0]+1)/2, best_coef[1], best_coef[2], self.ville_nid.get_position(),  self.ville_nid, self.routes[0])
+        for r in self.routes :
+            print r.qte_pheromones()
+        best_fourmi = Fourmi(0.98, best_coef[1], best_coef[2], self.ville_nid.get_position(),  self.ville_nid, self.routes[0])
         pos = best_fourmi.getpos()
         while np.linalg.norm(pos - self.ville_food.get_position()) != 0  :
             best_fourmi.marcher(self.routes)
@@ -249,18 +256,14 @@ class Civilisation :
             ant.reset_nourriture()
             ant.reset_memoire()
 
-    def get_ants_position(self):
-        f = []
-        for ant in self.fourmis:
-            f.append(ant.getpos())
-        return f
-
 
 def traitement():
-    civ = Civilisation([(1, 3), (3, 2), (2, 1), (1, 0), (0, 2)], [(248, 451), (327, 294), (382, 361), (446, 217)], 1)
+    '''
+    civ = Civilisation()
     X = []
     Y = []
-    for i in range(2000):
+    plt.plot([0,20,70,50,100], [0,20,30,80,50], '+')
+    for i in range(10000):
         civ.tourSuivant()
         pos = civ.pos_fourmi()
         X.append(pos[0])
@@ -269,5 +272,6 @@ def traitement():
         print r,r.qte_pheromones()
     plt.plot(X,Y,'.')
     plt.show()
-    civ = Civilisation()
+    '''
+    civ = Civilisation() #routes = [(0,2), (1,2), (0,1)], villes=[('nid', 0,0), ('ville1', 40, 10), ('food', 50, 50)]
     civ.fin()
