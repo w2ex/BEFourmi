@@ -212,9 +212,13 @@ def Clic_route(event):
         print("La liste des routes : " + str(LISTE_ROUTES))
 
 def Effacer():
-    global CITY1
-    global CITY2
-    global DEBUT_LIGNE
+    global NB_FOURMIS 
+    global NB_ITERATIONS
+    global LISTE_ANTS 
+    global LISTE_COORDS_ANTS 
+    global CITY1 
+    global CITY2 
+    global DEBUT_LIGNE 
     global FIN_LIGNE
     global RIGHT_CLICKED1
     global RIGHT_CLICKED2
@@ -222,19 +226,36 @@ def Effacer():
     global LISTE_VILLES
     global LISTE_COORDS_VILLES
     global LISTE_ROUTES
-    global NB_VILLES
+    global NB_VILLES 
+
+
     
     Canevas.delete(ALL)
+    NB_FOURMIS = IntVar()
+    NB_FOURMIS.set(20)
+    
+    NB_ITERATIONS = IntVar()
+    NB_ITERATIONS.set(2000)
+    
+    LISTE_ANTS = []
+    LISTE_COORDS_ANTS = []
+    
     CITY1 = 0
     CITY2 = 0
+    
     DEBUT_LIGNE = (0,0)
     FIN_LIGNE = (0,0)
+    
     RIGHT_CLICKED1 = False
     RIGHT_CLICKED2 = False
+    
     DETECTION_CLIC_SUR_OBJET = False
+    
     LISTE_VILLES = []
     LISTE_COORDS_VILLES = []
+    
     LISTE_ROUTES = []
+    
     NB_VILLES = 0
 
 ## Elements graphiques
