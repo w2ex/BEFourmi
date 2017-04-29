@@ -89,7 +89,7 @@ def Go():
         print(i)
         civ.tourSuivant()
         LISTE_COORDS_ANTS = civ.get_ants_position()
-        Mafenetre.after(10,move_ants())
+        Mafenetre.after(1,move_ants())
     print('Wait a bit please, some processing to find the best path is ongoing....')
     best_road = civ.fin()
     shorten(best_road)
