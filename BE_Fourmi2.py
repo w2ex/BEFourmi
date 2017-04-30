@@ -101,7 +101,7 @@ class Fourmi :
                 chemin_max_phero = routes_dispo[1] # si possible on ne set pas le chemin par défaut sur celui que l'on vient de prendre (pas de demi-tour par exemple)
             max_phero = 0
             for e in routes_dispo:
-                qte_pheromones = e.qte_pheromones #int(100*e.qte_pheromones()/e.get_distance())
+                qte_pheromones = int(100*e.qte_pheromones()/e.get_distance()) #e.qte_pheromones #
                 if qte_pheromones > max_phero and e != self.current_route :
                     max_phero = qte_pheromones
                     chemin_max_phero = e
