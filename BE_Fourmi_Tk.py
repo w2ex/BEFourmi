@@ -248,10 +248,10 @@ def Effacer():
     global NB_VILLES 
 
     Canevas.delete(ALL)
-    NB_FOURMIS = IntVar()
-    NB_FOURMIS.set(20)
-    NB_ITERATIONS = IntVar()
-    NB_ITERATIONS.set(2000)
+    #NB_FOURMIS = IntVar()
+    #NB_FOURMIS.set(20)
+    #NB_ITERATIONS = IntVar()
+    #NB_ITERATIONS.set(2000)
     LISTE_ANTS = []
     LISTE_COORDS_ANTS = []
     CITY1 = 0
