@@ -76,7 +76,7 @@ def Go():
     print("Liste des routes : ", LISTE_ROUTES)
     print("Liste des coords des villes : ", LISTE_COORDS_VILLES)
     print("nb. de fourmis", NB_FOURMIS.get())
-    print("nb itertions :", NB_ITERATIONS.get())
+    print("nb iterations :", NB_ITERATIONS.get())
     print("......")
     # les choses serieuses commencent
     civ = Civilisation(LISTE_ROUTES, LISTE_COORDS_VILLES, NB_FOURMIS.get())

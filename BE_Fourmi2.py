@@ -178,7 +178,15 @@ class Civilisation :
         
     def fin(self):
         list_positions = []
-        best_fourmi = Fourmi(0.98, 0, 0.1, self.ville_nid.get_position(),  self.ville_nid, self.routes)
+        route_depart = self.routes[0]
+        phero_depart = 0
+        for route in self.routes :
+            if route.get_villes()[0] ==self.ville_nid or route.get_villes()[1] == self.ville_nid :
+                if route.qte_pheromones >= phero_depart :
+                    phero_depart = route.qte_pheromones
+                    route_depart = route
+        route = [route_depart]
+        best_fourmi = Fourmi(0.98, 0, 0.1, self.ville_nid.get_position(),  self.ville_nid, route)
         pos = best_fourmi.getpos()
         list_positions.append(pos)
         while np.linalg.norm(pos - self.ville_food.get_position()) != 0  :
@@ -271,5 +279,5 @@ def traitement():
     plt.plot(X,Y,'.')
     plt.show()
     '''
-    civ = Civilisation([(0, 1), (1, 2), (0, 2)], [('nid',165, 395), ('ville',292, 305), ('source',310, 451)]) #routes = [(0,2), (1,2), (0,1)], villes=[('nid', 0,0), ('ville1', 40, 10), ('food', 50, 50)]
+    civ = Civilisation([(0, 1), (1, 2), (0, 2)], [(165, 395), (292, 305), (310, 451)]) #routes = [(0,2), (1,2), (0,1)], villes=[('nid', 0,0), ('ville1', 40, 10), ('food', 50, 50)]
     civ.fin()
