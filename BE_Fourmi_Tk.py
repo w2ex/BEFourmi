@@ -21,10 +21,10 @@ Mafenetre.title('Colonie de fourmis & Problème du plus court chemin')
 ## Variables globales -- toutes les infos importantes
 
 NB_FOURMIS = IntVar()
-NB_FOURMIS.set(20)
+#NB_FOURMIS.set(20)
 
 NB_ITERATIONS = IntVar()
-NB_ITERATIONS.set(2000)
+#NB_ITERATIONS.set(2000)
 
 LISTE_ANTS = []
 LISTE_COORDS_ANTS = []
