@@ -162,7 +162,7 @@ class Civilisation :
                 fourmi.marcher(self.routes)
         for r in self.routes :
             r.evaporer_Pheromone()
-        if self.instant%500 == 0 :
+        if self.instant%100 == 0 :
             self.algo_gene()
         self.instant +=1
             
